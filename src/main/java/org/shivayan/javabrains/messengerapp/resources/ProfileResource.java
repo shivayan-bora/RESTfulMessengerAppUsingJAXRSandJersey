@@ -25,8 +25,8 @@ public class ProfileResource {
 	ProfileService profileService = new ProfileService();
 
 	/**
-	 * Method handling HTTP GET requests. The returned object will be sent to
-	 * the client as "text/plain" media type.
+	 * Method handling HTTP GET requests. The returned object will be sent to the
+	 * client as "text/plain" media type.
 	 *
 	 * @return String that will be returned as a text/plain response.
 	 */
@@ -37,16 +37,17 @@ public class ProfileResource {
 	public List<Profile> getProfiles() {
 		return profileService.getAllProfiles();
 	}
-	
+
 	@GET
 	// For mapping a subsequent paths
 	@Path("/{profileName}")
 	@Produces(MediaType.APPLICATION_JSON)
-	// To capture the parameter specified in the path and send it to the constructor of the below menthod
+	// To capture the parameter specified in the path and send it to the constructor
+	// of the below menthod
 	public Profile getMessage(@PathParam("profileName") String profileName) {
 		return profileService.getProfile(profileName);
 	}
-	
+
 	@POST
 	// This is to tell Jersey what kind of content the service will consume
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -54,7 +55,7 @@ public class ProfileResource {
 	public Profile addMessage(Profile profile) {
 		return profileService.addProfile(profile);
 	}
-	
+
 	@PUT
 	@Path("/{profileName}")
 	// This is to tell Jersey what kind of content the service will consume
@@ -64,7 +65,7 @@ public class ProfileResource {
 		profile.setProfileName(profileName);
 		return profileService.updateProfile(profile);
 	}
-	
+
 	@DELETE
 	@Path("/{profileName}")
 	// This is to tell Jersey what kind of content the service will consume

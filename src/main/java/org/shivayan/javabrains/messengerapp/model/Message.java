@@ -1,8 +1,11 @@
 package org.shivayan.javabrains.messengerapp.model;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 // JAX-B will convert the instances of the below object into xmls
 // Below annotation specifies that the below element is the root element 
@@ -12,6 +15,7 @@ public class Message {
 	private String message;
 	private Date created;
 	private String author;
+	private Map<Long, Comment> comments = new HashMap<>();
 
 	public Message() {
 
@@ -54,5 +58,16 @@ public class Message {
 
 	public void setAuthor(String author) {
 		this.author = author;
+	}
+
+	// Marks the parameter as ignore for XML & JSON Conversion. Exclude comments
+	// from both JSON and XML representations
+	@XmlTransient
+	public Map<Long, Comment> getComments() {
+		return comments;
+	}
+
+	public void setComments(Map<Long, Comment> comments) {
+		this.comments = comments;
 	}
 }

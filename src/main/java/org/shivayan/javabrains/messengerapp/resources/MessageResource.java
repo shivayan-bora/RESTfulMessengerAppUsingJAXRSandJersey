@@ -1,5 +1,6 @@
 package org.shivayan.javabrains.messengerapp.resources;
 
+import java.net.URI;
 import java.util.List;
 
 import javax.ws.rs.BeanParam;
@@ -11,7 +12,10 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import org.shivayan.javabrains.messengerapp.model.Message;
 import org.shivayan.javabrains.messengerapp.resources.beans.MessageFilterBeans;
@@ -33,6 +37,7 @@ public class MessageResource {
 	 *
 	 * @return String that will be returned as a text/plain response.
 	 */
+	// Way to access bean params
 	// The HTTP method to be used
 	@GET
 	// This tells Jersey on what is the return type of the response
@@ -48,16 +53,15 @@ public class MessageResource {
 	}
 
 	// Way to access query params
-/*	public List<Message> getMessages(@QueryParam("year") int year, @QueryParam("start") int start,
-			@QueryParam("size") int size) {
-		if (year > 0) {
-			return messageService.getAllMessagesForYear(year);
-		}
-		if (start >= 0 && size >= 0) {
-			return messageService.getAllMessagesPaginated(start, size);
-		}
-		return messageService.getAllMessages();
-	}*/
+	/*
+	 * public List<Message> getMessages(@QueryParam("year") int
+	 * year, @QueryParam("start") int start,
+	 * 
+	 * @QueryParam("size") int size) { if (year > 0) { return
+	 * messageService.getAllMessagesForYear(year); } if (start >= 0 && size >= 0) {
+	 * return messageService.getAllMessagesPaginated(start, size); } return
+	 * messageService.getAllMessages(); }
+	 */
 
 	@GET
 	// For mapping a subsequent paths
@@ -73,8 +77,14 @@ public class MessageResource {
 	// This is to tell Jersey what kind of content the service will consume
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public Message addMessage(Message message) {
-		return messageService.addMessage(message);
+	public Response addMessage(Message message, @Context UriInfo uriInfo) {
+		Message newMessage = messageService.addMessage(message);
+		// To send proper status codes in header and the id of the newly created
+		// message. '.build()' will create the Response instance using the parameters we
+		// have specified (status(Status.CREATED) = For proper status code)
+		String id = String.valueOf(newMessage.getId());
+		URI uri = uriInfo.getAbsolutePathBuilder().path(id).build();
+		return Response.created(uri).entity(newMessage).build();
 	}
 
 	@PUT
@@ -94,4 +104,10 @@ public class MessageResource {
 	public void deleteMessage(@PathParam("messageId") long messageId) {
 		messageService.removeMessage(messageId);
 	}
+
+	@Path("/{messageId}/comments")
+	public CommentResource getCommentResource() {
+		return new CommentResource();
+	}
+
 }
