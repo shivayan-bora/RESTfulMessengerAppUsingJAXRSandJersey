@@ -4,8 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import org.shivayan.javabrains.messengerapp.database.DatabaseClass;
 import org.shivayan.javabrains.messengerapp.model.Comment;
+import org.shivayan.javabrains.messengerapp.model.ErrorMessage;
 import org.shivayan.javabrains.messengerapp.model.Message;
 
 public class CommentService {
@@ -18,8 +24,17 @@ public class CommentService {
 	}
 
 	public Comment getComment(long messageId, long commentId) {
-		Map<Long, Comment> comments = messages.get(messageId).getComments();
+		ErrorMessage errorMessage = new ErrorMessage("Not Found", 404, "http://www.google.com");
+		Response response = Response.status(Status.NOT_FOUND).entity(errorMessage).build();
+		Message message = messages.get(messageId);
+		if (message == null) {
+			throw new WebApplicationException(response);
+		}
+		Map<Long, Comment> comments = message.getComments();
 		Comment comment = comments.get(commentId);
+		if (comment == null) {
+			throw new NotFoundException(response);
+		}
 		return comment;
 	}
 

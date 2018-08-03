@@ -41,8 +41,24 @@ public class MessageResource {
 	// The HTTP method to be used
 	@GET
 	// This tells Jersey on what is the return type of the response
+	// For multiple content types 
+	//@Produces(value = {MediaType.APPLICATION_JSON , MediaType.APPLICATION_XML, MediaType.TEXT_XML})
+	// For JSON Response
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<Message> getMessages(@BeanParam MessageFilterBeans filterBean) {
+	public List<Message> getJsonMessages(@BeanParam MessageFilterBeans filterBean) {
+		if (filterBean.getYear() > 0) {
+			return messageService.getAllMessagesForYear(filterBean.getYear());
+		}
+		if (filterBean.getStart() >= 0 && filterBean.getSize() >= 0) {
+			return messageService.getAllMessagesPaginated(filterBean.getStart(), filterBean.getSize());
+		}
+		return messageService.getAllMessages();
+	}
+	
+	@GET
+	// For XML Response
+	@Produces(MediaType.TEXT_XML)
+	public List<Message> getXmlMessages(@BeanParam MessageFilterBeans filterBean) {
 		if (filterBean.getYear() > 0) {
 			return messageService.getAllMessagesForYear(filterBean.getYear());
 		}
@@ -69,12 +85,37 @@ public class MessageResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	// To capture the parameter specified in the path and send it to the constructor
 	// of the below method
-	public Message getMessage(@PathParam("messageId") long messageId) {
-		return messageService.getMessage(messageId);
+	public Message getMessage(@PathParam("messageId") long messageId, @Context UriInfo uriInfo) {
+		Message message = messageService.getMessage(messageId);
+		// HATEOAS Implementation
+		message.addLink(getUriForSelf(uriInfo, message), "self");
+		message.addLink(getUriForProfile(uriInfo, message), "profile");
+		message.addLink(getUriForComments(uriInfo, message), "comments");
+		return message;
+	}
+
+	private String getUriForComments(UriInfo uriInfo, Message message) {
+		String uri = uriInfo.getBaseUriBuilder().path(MessageResource.class)
+				.path(MessageResource.class, "getCommentResource").path(CommentResource.class)
+				.resolveTemplate("messageId", message.getId()).build().toString();
+		return uri;
+	}
+
+	private String getUriForProfile(UriInfo uriInfo, Message message) {
+		String uri = uriInfo.getBaseUriBuilder().path(ProfileResource.class).path(message.getAuthor()).build()
+				.toString();
+		return uri;
+	}
+
+	private String getUriForSelf(UriInfo uriInfo, Message message) {
+		String uri = uriInfo.getBaseUriBuilder().path(MessageResource.class).path(Long.toString(message.getId()))
+				.build().toString();
+		return uri;
 	}
 
 	@POST
 	// This is to tell Jersey what kind of content the service will consume
+	// For consuming different content types, we can create multiple methods.
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response addMessage(Message message, @Context UriInfo uriInfo) {
